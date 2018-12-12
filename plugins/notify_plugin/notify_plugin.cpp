@@ -197,7 +197,7 @@ void notify_plugin_impl::on_accepted_block(const block_state_ptr &block_state)
   {
     message msg;
     transaction_id_type tx_id;
-    dlog("block_state->block->transactions: ${a}", ("a", fc::json::to_pretty_string(block_state->block->transactions)));
+    // dlog("block_state->block->transactions: ${a}", ("a", fc::json::to_pretty_string(block_state->block->transactions)));
     for (const auto &trx : block_state->block->transactions)
     {
       if (trx.trx.contains<transaction_id_type>())
@@ -232,7 +232,7 @@ void notify_plugin_impl::on_irreversible_block(const block_state_ptr &block_stat
   {
     message msg;
     transaction_id_type tx_id;
-    dlog("block_state->block->transactions: ${a}", ("a", fc::json::to_pretty_string(block_state->block->transactions)));
+    // dlog("block_state->block->transactions: ${a}", ("a", fc::json::to_pretty_string(block_state->block->transactions)));
     for (const auto &trx : block_state->block->transactions)
     {
       if (trx.trx.contains<transaction_id_type>())
