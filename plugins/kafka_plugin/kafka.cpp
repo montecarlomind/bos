@@ -55,6 +55,35 @@ void kafka::set_partition(int partition) {
     partition_ =  partition;
 }
 
+void kafka::set_enable(bool block, bool transaction, bool transaction_trace, bool action, bool only_irreversible_txs) {
+    enable_block = block;
+    enable_transaction = transaction;
+    enable_transaction_trace = transaction_trace;
+    enable_action = action;
+    only_irreversible_tx = only_irreversible_txs;
+}
+
+void kafka::set_lib(uint32_t block) {
+    lib = block;
+}
+
+bool kafka::filter(const chain::action_trace &act)
+{
+  if (filter_on.find({act.act.account, act.act.name}) != filter_on.end())
+  {
+    return true;
+  }
+  else if (filter_on.find({act.act.account, 0}) != filter_on.end())
+  {
+    return true;
+  }
+  return false;
+}
+
+void kafka::add_filter(const FilterEntry fe) {
+    filter_on.insert(fe);
+}
+
 void kafka::start() {
     producer_ = std::make_unique<Producer>(config_);
 
@@ -69,6 +98,8 @@ void kafka::stop() {
 }
 
 void kafka::push_block(const chain::block_state_ptr& block_state, bool irreversible) {
+    if (not enable_block) return;
+
     const auto& header = block_state->header;
     auto b = std::make_shared<Block>();
 
@@ -92,6 +123,10 @@ void kafka::push_block(const chain::block_state_ptr& block_state, bool irreversi
 }
 
 std::pair<uint32_t, uint32_t> kafka::push_transaction(const chain::transaction_receipt& tx_receipt, const BlockPtr& block, uint16_t block_seq) {
+    if (not enable_transaction) {
+        return {0, 0};
+    }
+
     auto t = std::make_shared<Transaction>();
     if(tx_receipt.trx.contains<transaction_id_type>()) {
         t->id = checksum_bytes(tx_receipt.trx.get<transaction_id_type>());
@@ -112,28 +147,53 @@ std::pair<uint32_t, uint32_t> kafka::push_transaction(const chain::transaction_r
 }
 
 void kafka::push_transaction_trace(const chain::transaction_trace_ptr& tx_trace) {
-    auto t = std::make_shared<TransactionTrace>();
+    // bypass failed transaction
+    if (not tx_trace->receipt) return;
 
-    t->id = checksum_bytes(tx_trace->id);
-    t->block_num = tx_trace->block_num;
-    t->scheduled = tx_trace->scheduled;
-    if (tx_trace->receipt) {
-        t->status = transactionStatus(tx_trace->receipt->status);
-        t->cpu_usage_us = tx_trace->receipt->cpu_usage_us;
-        t->net_usage_words = tx_trace->receipt->net_usage_words;
-    }
-    if (tx_trace->except) {
-        t->exception = tx_trace->except->to_string();
+    // bypass `onblock` transaction
+    if (not tx_trace->action_traces.empty()) {
+        const auto& first = tx_trace->action_traces.front().act;
+        if (first.account == chain::config::system_account_name and first.name == N(onblock)) {
+            return;
+        }
     }
 
-    consume_transaction_trace(t);
+    if (enable_transaction_trace) {
+        auto t = std::make_shared<TransactionTrace>();
 
-    for (auto& action_trace: tx_trace->action_traces) {
-        push_action(action_trace, 0, t); // 0 means no parent
+        t->id = checksum_bytes(tx_trace->id);
+        t->block_num = tx_trace->block_num;
+        t->scheduled = tx_trace->scheduled;
+        if (tx_trace->receipt) {
+            t->status = transactionStatus(tx_trace->receipt->status);
+            t->cpu_usage_us = tx_trace->receipt->cpu_usage_us;
+            t->net_usage_words = tx_trace->receipt->net_usage_words;
+        }
+        if (tx_trace->except) {
+            t->exception = tx_trace->except->to_string();
+        }
+
+        consume_transaction_trace(t);
+    }
+
+    if (tx_trace->receipt->status != chain::transaction_receipt::executed) {
+        return;
+    }
+
+    if (only_irreversible_tx) {
+        if (lib >= tx_trace->block_num) {
+            for (auto& action_trace: tx_trace->action_traces) {
+                push_action(action_trace, 0); // 0 means no parent
+            }
+        }
+    } else {
+        for (auto& action_trace: tx_trace->action_traces) {
+            push_action(action_trace, 0); // 0 means no parent
+        }
     }
 }
 
-void kafka::push_action(const chain::action_trace& action_trace, uint64_t parent_seq, const TransactionTracePtr& tx) {
+void kafka::push_action(const chain::action_trace& action_trace, uint64_t parent_seq) {
     auto a = std::make_shared<Action>();
 
     a->global_seq = action_trace.receipt.global_sequence;
@@ -155,7 +215,7 @@ void kafka::push_action(const chain::action_trace& action_trace, uint64_t parent
     consume_action(a);
 
     for (auto& inline_trace: action_trace.inline_traces) {
-        push_action(inline_trace, action_trace.receipt.global_sequence, tx);
+        push_action(inline_trace, action_trace.receipt.global_sequence);
     }
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eosio/chain/block_timestamp.hpp>
+#include <eosio/chain/types.hpp>
 
 namespace kafka {
 
@@ -79,6 +80,22 @@ struct Action {
     string console;
 };
 
+struct FilterEntry
+{
+    name account;
+    name action;
+
+    std::tuple<name, name> key() const
+    {
+        return std::make_tuple(account, action);
+    }
+
+    friend bool operator<(const FilterEntry &a, const FilterEntry &b)
+    {
+        return a.key() < b.key();
+    }
+};
+
 using BlockPtr = std::shared_ptr<Block>;
 using TransactionPtr = std::shared_ptr<Transaction>;
 using TransactionTracePtr = std::shared_ptr<TransactionTrace>;
@@ -92,3 +109,4 @@ FC_REFLECT(kafka::Block, (id)(num)(timestamp)(lib)(block)(tx_count)(action_count
 FC_REFLECT(kafka::Transaction, (id)(block_id)(block_num)(block_time)(block_seq)(action_count)(context_free_action_count))
 FC_REFLECT(kafka::TransactionTrace, (id)(block_num)(scheduled)(status)(net_usage_words)(cpu_usage_us)(exception))
 FC_REFLECT(kafka::Action, (global_seq)(recv_seq)(parent_seq)(account)(name)(auth)(data)(receiver)(auth_seq)(code_seq)(abi_seq)(block_num)(block_time)(tx_id)(console))
+FC_REFLECT(kafka::FilterEntry, (account)(action))
