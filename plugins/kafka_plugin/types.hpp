@@ -9,6 +9,8 @@ using name_t = uint64_t;
 using std::string;
 using bytes = std::vector<char>;
 using eosio::chain::block_timestamp_type;
+using eosio::chain::name;
+using eosio::chain::asset;
 
 struct Block {
     bytes id;

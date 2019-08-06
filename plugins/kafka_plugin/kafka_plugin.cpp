@@ -4,6 +4,7 @@
 
 #include "kafka.hpp"
 #include "try_handle.hpp"
+#include <boost/algorithm/string.hpp>
 
 namespace eosio {
 
