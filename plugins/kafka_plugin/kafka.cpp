@@ -182,7 +182,7 @@ void kafka::push_transaction_trace(const chain::transaction_trace_ptr& tx_trace)
     }
 
     if (only_irreversible_tx) {
-        ilog("only_irreversible_tx, lib: ${b}, tx_block: ${t}", ("b", lib), ("t", tx_trace->block_num));
+        ilog("only_irreversible_tx, lib: ${b}, tx_block: ${t}", ("b", lib)("t", tx_trace->block_num));
         if (lib >= tx_trace->block_num) {
             for (auto& action_trace: tx_trace->action_traces) {
                 push_action(action_trace, 0); // 0 means no parent
