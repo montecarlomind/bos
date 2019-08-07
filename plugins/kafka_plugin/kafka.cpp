@@ -64,6 +64,7 @@ void kafka::set_enable(bool block, bool transaction, bool transaction_trace, boo
 }
 
 void kafka::set_lib(uint32_t block) {
+    ilog("set_lib, lib: ${b}", ("b", block));
     lib = block;
 }
 
@@ -181,6 +182,7 @@ void kafka::push_transaction_trace(const chain::transaction_trace_ptr& tx_trace)
     }
 
     if (only_irreversible_tx) {
+        ilog("only_irreversible_tx, lib: ${b}, tx_block: ${t}", ("b", lib), ("t", tx_trace->block_num));
         if (lib >= tx_trace->block_num) {
             for (auto& action_trace: tx_trace->action_traces) {
                 push_action(action_trace, 0); // 0 means no parent
@@ -194,6 +196,9 @@ void kafka::push_transaction_trace(const chain::transaction_trace_ptr& tx_trace)
 }
 
 void kafka::push_action(const chain::action_trace& action_trace, uint64_t parent_seq) {
+    if (not enable_action) return;
+    if (not filter(action_trace)) return;
+
     auto a = std::make_shared<Action>();
 
     a->global_seq = action_trace.receipt.global_sequence;
