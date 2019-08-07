@@ -164,9 +164,10 @@ void kafka_plugin::plugin_initialize(const variables_map& options) {
             if (b->block_num >= start_block_num) start_sync_ = true;
             else return;
         }
+        kafka_->set_lib(b->block_num);
+
         if (not enable_blocks) return;
 
-        kafka_->set_lib(b->block_num);
         handle([=] { kafka_->push_block(b, true); }, "push irreversible block");
     });
     transaction_conn_ = chain.applied_transaction.connect([=](const chain::transaction_trace_ptr& t) {
