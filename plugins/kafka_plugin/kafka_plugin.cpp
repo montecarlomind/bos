@@ -170,7 +170,7 @@ void kafka_plugin::plugin_initialize(const variables_map& options) {
     });
     transaction_conn_ = chain.applied_transaction.connect([=](const chain::transaction_trace_ptr& t) {
         if (not start_sync_) return;
-        uint32_t lib = chain.last_irreversible_block_num();
+        uint32_t lib = chain_plugin_->chain().last_irreversible_block_num();
         kafka_->set_lib(lib);
         if (only_irreversible_txs) {
             ilog("chain.applied_transaction.connect, lib: ${b}, tx_block: ${t}", ("b", lib)("t", t->block_num));
