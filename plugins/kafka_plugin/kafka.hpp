@@ -18,8 +18,7 @@ public:
     void set_config(Configuration config);
     void set_topics(const string& block_topic, const string& tx_topic, const string& tx_trace_topic, const string& action_topic);
     void set_partition(int partition);
-    void set_enable(bool block, bool transaction, bool transaction_trace, bool action, bool only_irreversible_txs);
-    void set_lib(uint32_t block);
+    void set_enable(bool block, bool transaction, bool transaction_trace, bool action);
     void add_filter(const FilterEntry fe);
     bool filter(const chain::action_trace &act);
     void start();
@@ -46,12 +45,9 @@ private:
     bool enable_transaction = false;
     bool enable_transaction_trace = false;
     bool enable_action = false;
-    bool only_irreversible_tx = true;
     std::set<FilterEntry> filter_on;
 
     int partition_{-1};
-    uint32_t lib{1};
-
     std::unique_ptr<Producer> producer_;
 };
 

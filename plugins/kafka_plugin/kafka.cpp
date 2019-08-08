@@ -55,17 +55,11 @@ void kafka::set_partition(int partition) {
     partition_ =  partition;
 }
 
-void kafka::set_enable(bool block, bool transaction, bool transaction_trace, bool action, bool only_irreversible_txs) {
+void kafka::set_enable(bool block, bool transaction, bool transaction_trace, bool action) {
     enable_block = block;
     enable_transaction = transaction;
     enable_transaction_trace = transaction_trace;
     enable_action = action;
-    only_irreversible_tx = only_irreversible_txs;
-}
-
-void kafka::set_lib(uint32_t block) {
-    ilog("set_lib, lib: ${b}", ("b", block));
-    lib = block;
 }
 
 bool kafka::filter(const chain::action_trace &act)
@@ -181,17 +175,8 @@ void kafka::push_transaction_trace(const chain::transaction_trace_ptr& tx_trace)
         return;
     }
 
-    if (only_irreversible_tx) {
-        ilog("only_irreversible_tx, lib: ${b}, tx_block: ${t}", ("b", lib)("t", tx_trace->block_num));
-        if (lib >= tx_trace->block_num) {
-            for (auto& action_trace: tx_trace->action_traces) {
-                push_action(action_trace, 0); // 0 means no parent
-            }
-        }
-    } else {
-        for (auto& action_trace: tx_trace->action_traces) {
-            push_action(action_trace, 0); // 0 means no parent
-        }
+    for (auto& action_trace: tx_trace->action_traces) {
+        push_action(action_trace, 0); // 0 means no parent
     }
 }
 
