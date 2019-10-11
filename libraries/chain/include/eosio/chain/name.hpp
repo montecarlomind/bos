@@ -123,12 +123,14 @@ namespace eosio { namespace chain {
 
       operator bool()const            { return value; }
       operator uint128_t()const        { return value; }
-      operator unsigned __int128()const       { return value; }
+      // operator unsigned __int128()const       { return value; }
    };
 
 } } // eosio::chain
 
 namespace std {
+   using eosio::chain::name::uint128_t;
+
    template<> struct hash<eosio::chain::name> : private hash<uint128_t> {
       typedef eosio::chain::name argument_type;
       typedef typename hash<uint128_t>::result_type result_type;
