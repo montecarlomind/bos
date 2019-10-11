@@ -2,6 +2,7 @@
 #include <string>
 #include <fc/reflect/reflect.hpp>
 #include <iosfwd>
+#include <eosio/chain/types.hpp>
 
 namespace eosio { namespace chain {
    using std::string;
