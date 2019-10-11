@@ -27,6 +27,9 @@
 [submodule "libraries/fc"]
 	path = libraries/fc
 	url = https://github.com/EOSIO/fc
+# [submodule "libraries/wabt"]
+# 	path = libraries/wabt
+# 	url = https://github.com/EOSIO/wabt
 [submodule "libraries/wabt"]
 	path = libraries/wabt
-	url = https://github.com/EOSIO/wabt
+	url = https://github.com/montecarlomind/wabt.git

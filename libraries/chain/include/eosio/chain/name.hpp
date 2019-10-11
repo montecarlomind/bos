@@ -5,7 +5,7 @@
 
 namespace eosio { namespace chain {
    using std::string;
-   using uint128_t           = unsigned __int128;
+   using uint128_t = unsigned __int128;
 
    // static constexpr uint64_t char_to_symbol( char c ) {
    //    if( c >= 'a' && c <= 'z' )

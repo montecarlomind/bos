@@ -1,7 +1,7 @@
 #include <eosio/chain/webassembly/wabt.hpp>
 #include <eosio/chain/apply_context.hpp>
 #include <eosio/chain/wasm_eosio_constraints.hpp>
-
+#include <eosio/chain/name.hpp>
 //wabt includes
 #include <src/interp.h>
 #include <src/binary-reader-interp.h>
@@ -14,6 +14,8 @@ static wabt_apply_instance_vars* static_wabt_vars;
 
 using namespace wabt;
 using namespace wabt::interp;
+using eosio::chain::uint128_t;
+
 namespace wasm_constraints = eosio::chain::wasm_constraints;
 
 class wabt_instantiated_module : public wasm_instantiated_module_interface {
@@ -50,9 +52,13 @@ class wabt_instantiated_module : public wasm_instantiated_module_interface {
             memcpy(memory->data.data(), _initial_memory.data(), _initial_memory.size());
          }
 
-         _params[0].set_i64(uint64_t(context.receiver));
-         _params[1].set_i64(uint64_t(context.act.account));
-         _params[2].set_i64(uint64_t(context.act.name));
+         // _params[0].set_i64(uint64_t(context.receiver));
+         // _params[1].set_i64(uint64_t(context.act.account));
+         // _params[1].set_i64(uint64_t(context.act.account));
+
+         _params[0].set_i128(uint128_t(context.receiver));
+         _params[1].set_i128(uint128_t(context.act.account));
+         _params[2].set_i128(uint128_t(context.act.name));
 
          ExecResult res = _executor.RunStartFunction(_instatiated_module);
          EOS_ASSERT( res.result == interp::Result::Ok, wasm_execution_error, "wabt start function failure (${s})", ("s", ResultToString(res.result)) );
@@ -65,7 +71,8 @@ class wabt_instantiated_module : public wasm_instantiated_module_interface {
       std::unique_ptr<interp::Environment>              _env;
       DefinedModule*                                    _instatiated_module;  //this is owned by the Environment
       std::vector<uint8_t>                              _initial_memory;
-      TypedValues                                       _params{3, TypedValue(Type::I64)};
+      // TypedValues                                       _params{3, TypedValue(Type::I64)};
+      TypedValues                                       _params{3, TypedValue(Type::V128)};
       std::vector<std::pair<Global*, TypedValue>>       _initial_globals;
       Limits                                            _initial_memory_configuration;
       Executor                                          _executor;
