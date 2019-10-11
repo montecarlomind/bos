@@ -3,6 +3,7 @@
 #include <eosio/chain/wasm_eosio_injection.hpp>
 #include <eosio/chain/apply_context.hpp>
 #include <eosio/chain/exceptions.hpp>
+#include <eosio/chain/name.hpp>
 
 #include "IR/Module.h"
 #include "Platform/Platform.h"
@@ -19,6 +20,7 @@ using namespace Runtime;
 
 namespace eosio { namespace chain { namespace webassembly { namespace wavm {
 
+using eosio::chain::uint128_t;
 running_instance_context the_running_instance_context;
 
 class wavm_instantiated_module : public wasm_instantiated_module_interface {
@@ -30,9 +32,9 @@ class wavm_instantiated_module : public wasm_instantiated_module_interface {
       {}
 
       void apply(apply_context& context) override {
-         vector<Value> args = {Value(uint64_t(context.receiver)),
-	                       Value(uint64_t(context.act.account)),
-                               Value(uint64_t(context.act.name))};
+         vector<Value> args = {Value(uint128_t(context.receiver)),
+	                       Value(uint128_t(context.act.account)),
+                               Value(uint128_t(context.act.name))};
 
          call("apply", args, context);
       }
