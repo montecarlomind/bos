@@ -129,7 +129,7 @@ namespace eosio { namespace chain {
 } } // eosio::chain
 
 namespace std {
-   using eosio::chain::name::uint128_t;
+   using eosio::chain::uint128_t;
 
    template<> struct hash<eosio::chain::name> : private hash<uint128_t> {
       typedef eosio::chain::name argument_type;
